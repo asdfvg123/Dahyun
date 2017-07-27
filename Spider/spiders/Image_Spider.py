@@ -8,8 +8,13 @@ from Spider.items import SpiderItem
 
 class Dahyun_Spider(scrapy.Spider):
     name = "Dahyun_Spider"
+    start_page = input("start page : ")
+    end_page = input("end page : ")
 
     start_urls = ['http://gall.dcinside.com/board/lists/?id=dahyeon&page=1&exception_mode=recommend']
+    start_urls[0] = start_urls[0].replace('page=1', 'page='+str(start_urls))
+
+    count = start_page
 
     def parse(self, response):
         for post in response.css("td.t_subject"):
@@ -20,10 +25,11 @@ class Dahyun_Spider(scrapy.Spider):
                 yield scrapy.Request(next_post, callback = self.parse_img)
 
         next_page = response.css('div#dgn_btn_paging a.on+a::attr(href)').extract_first()
-        
-        if next_page is not None:
-            next_post = response.urljoin(next_post)
-            yield scrapy.Request(next_post, callback = self.parse)
+
+        if next_page is not None and Dahyun_Spider.count <= Dahyun_Spider.end_page:
+            next_page = response.urljoin(next_page)
+            Dahyun_Spider.count += 1
+            yield scrapy.Request(next_page, callback = self.parse)
 
     def parse_img(self, response):
         img_urls = 0
